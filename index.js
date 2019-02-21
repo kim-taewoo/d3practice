@@ -1,37 +1,44 @@
-const canvas = d3.select(".canvas");
-const svg = canvas
-  .append("svg")
-  .attr("height", 600)
-  .attr("width", 600);
+// const data = [
+//   { width: 200, height: 100, fill: "purple" },
+//   { width: 100, height: 60, fill: "red" },
+//   { width: 50, height: 30, fill: "yellow" }
+// ];
 
-const group = svg.append('g')
-  .attr('transform','translate(50,100)')
+const svg = d3.select("svg");
 
-// append shapes to svg
-group
-  .append("rect")
-  .attr("width", 200)
-  .attr("height", 100)
-  .attr("fill", "blue")
-  .attr("x", 20)
-  .attr("y", 20);
-group
-  .append("circle")
-  .attr("r", 50)
-  .attr("cx", 300)
-  .attr("cy", 70)
-  .attr("fill", "pink");
-group
-  .append("line")
-  .attr("x1", 370)
-  .attr("x2", 400)
-  .attr("y1", 20)
-  .attr("y2", 120)
-  .attr("stroke", "red");
-group
-  .append("text")
-  .attr("x", 20)
-  .attr("y", 200)
-  .attr("fill", "grey")
-  .text("안녕하세요!")
-  .style("font-family", "바탕");
+d3.json('planets.json')
+  .then(data => {
+    const circles = svg.selectAll('circle')
+      .data(data);
+
+    // add attrs to circles already in DOM
+    circles
+      .attr('cy',200)
+      .attr('cx', d=>d.distance)
+      .attr('r', d=>d.radius)
+      .attr('fill', d=>d.fill)
+
+    // append the enter selection to the DOM
+    circles.enter()
+      .append('circle')
+      .attr('cy',200)
+      .attr('cx', d=>d.distance)
+      .attr('r', d=>d.radius)
+      .attr('fill', d=>d.fill)
+  })
+
+// const rects = svg.selectAll("rect");
+
+// rects
+//   .data(data)
+//   .enter()
+//   .append('rect')
+//   .attr("width", (d, i, n) => {
+//     console.log(n[i]); // 이렇게 하면 arrow functions 에서도 원래 this 를 구현 가능
+//     return d.width;
+//   })
+//   .attr("height", function(d) {
+//     console.log(this);
+//     return d.height;
+//   })
+//   .attr("fill", d => d.fill);
