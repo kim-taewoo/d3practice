@@ -44,6 +44,7 @@ const yAxis = d3.axisLeft(y)
   .tickFormat(d => d + ' orders') 
 
 
+const t = d3.transition().duration(1500);
   
 const update = (data) => {
   
@@ -59,21 +60,29 @@ const update = (data) => {
   
   // update current shapes in dom
   rects.attr('width', x.bandwidth)
-    .attr('height', d =>graphHeight - y(d.orders))
-    .attr('fill', 'orange')
-    .attr('x', d => x(d.name))
-    .attr('y', d => y(d.orders))
+  .attr('fill', 'orange')
+  .attr('x', d => x(d.name))
+  // .transition(t)
+  //   .attr('height', d => graphHeight - y(d.orders))
+  //   .attr('y', d => y(d.orders))
 
   // append the enter selection to the DOM
   rects
   .enter()
   .append("rect")
-    .attr("width", x.bandwidth)
-    .attr("height", d => graphHeight - y(d.orders))
+    // .attr("width", x.bandwidth)
+    // .attr("width", 0)
     .attr("fill", "orange")
+    .attr('height', 0)
     // .attr("x", (d, i) => i * 70);
     .attr("x", d => x(d.name))
-    .attr("y", d=> y(d.orders))
+    .attr("y", d=> graphHeight)
+    .merge(rects) // 이걸로 enter selection 과 현재 dom 의 rects 를 한꺼번에 묶어서 이 아래 함수를 함께 적용.
+    .transition(t)
+      // 시작 설정 이후에 들여쓰기로 transition 부분 따로보이게 하면 좋다.
+      .attrTween('width',widthTween)
+      .attr('y', d => y(d.orders))
+      .attr('height', d => graphHeight - y(d.orders))
 
   xAxisGroup.call(xAxis);
   yAxisGroup.call(yAxis);
@@ -102,7 +111,7 @@ var data = [];
 db.collection('dishes').onSnapshot(res=>{
   // console.log(res.docChanges())
   res.docChanges().forEach(change => {
-
+    console.log(change.doc.data());
     const doc = {...change.doc.data(), id: change.doc.id}
     switch (change.type) {
       case 'added':
@@ -118,6 +127,24 @@ db.collection('dishes').onSnapshot(res=>{
         break;
     }
   });
-  update(data)
+  update(data);
 })
 
+
+// TWEENS
+
+const widthTween = (d) => {
+  // define interpolation
+  // d3.interpolate returns a function which we call 'i'
+  let i = d3.interpolate(0, x.bandwidth());
+
+
+
+  // return a function which takes in a time ticker 't'
+  // 그니까 i 는 위치비례 t 는 duration 동안의 시간비례
+  return function(t) {
+    
+    // return the value from passing the ticker into the interpolation
+    return i(t);
+  }
+}
